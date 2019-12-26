@@ -1,17 +1,28 @@
 import React from 'react';
-import ListItem from '../ListItem/ListItem';
+
+import ListItem from '../ListItem';
 
 import './List.css';
 
-const List = ({todoData}) => {
-    const lists = todoData.map((l) => {
-        return <ListItem key = {l.id} list = {l}/>;
-    });
+const List = ({ todoList, deleteItem, onImportant, onlabelClick }) => {
+
+  const elements = todoList.map((list) => {
     return (
-    <ul className = "list_container">
-        {lists}
+    <ListItem 
+    label={list} 
+    key={list.id}
+    deleteList={deleteItem} 
+    onImportant={onImportant}
+    onlabelClick={onlabelClick}
+    />
+    )
+  });
+
+  return (
+    <ul className="list_container">
+      { elements }
     </ul>
-    );
+  );
 };
 
 export default List;

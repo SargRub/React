@@ -1,47 +1,113 @@
-import React from 'react';
+import React, { Component } from 'react';
 import Filter from '../Filter';
+import Header from '../Header';
 import List from '../List'
 import AddItem from '../AddItem'
 
-const data = [
-    {
-        id: 1,
-        title: 'Write the essay',
-        isDone: true
-    },
-    {
-        id: 2,
-        title: "Read React's book",
-        isDone: false
-    },
-    {
-        id: 3,
-        title: "Do Math's homework",
-        isDone: false
-    }
-];
+export default class App extends Component {
 
-const addNewItem = (title) => {
-    const obj = {
-        id: data[data.length - 1].id + 1,
-        isDone: false,
-        title
+    state = {
+        todoData:
+            [
+                this.createNewItem(1, "Learn Numpy"),
+                this.createNewItem(2, "Learn React"),
+                this.createNewItem(3, "Learn Scipy"),
+                this.createNewItem(4, "Learn Android")
+            ]
     }
 
-    data.push(obj);
+    createNewItem(id, title) {
+
+        return {
+            id,
+            title,
+            important: false,
+            isDone: false
+        }
+    }
+    onlabelClick = (id) => {
+        this.setState(({ todoData }) => {
+            const idx = todoData.findIndex((obj) => obj.id === id);
+
+            const obj = {
+                ...todoData[idx],
+                isDone: !todoData[idx].isDone
+            };
+
+            return {
+                todoData: [
+                    ...todoData.slice(0, idx),
+                    obj,
+                    ...todoData.slice(idx + 1)
+                ]
+            }
+        });
+    };
+
+    onImportant = (id) => {
+        this.setState(({ todoData }) => {
+            const idx = todoData.findIndex((obj) => obj.id === id);
+
+            const obj = {
+                ...todoData[idx],
+                important: !todoData[idx].important
+            };
+
+            return {
+                todoData: [
+                    ...todoData.slice(0, idx),
+                    obj,
+                    ...todoData.slice(idx + 1)
+                ]
+            }
+        });
+    };
+
+    onDeleteItem = (id) => {
+        this.setState(({ todoData }) => {
+            const idx = todoData.findIndex((obj) => obj.id === id);
+
+            return {
+                todoData: [
+                    ...todoData.slice(0, idx),
+                    ...todoData.slice(idx + 1)
+                ]
+            }
+        });
+    }
+    onAddItem = (text) => {
+        const title = text.trim();
+        if (!title) {
+            return;
+        }
+
+        this.setState(({ todoData }) => {
+            let id = 1;
+
+            if (todoData[todoData.length - 1]) {
+                id = todoData[todoData.length - 1].id + 1;
+            }
+
+            return {
+                todoData: [...todoData, this.createNewItem(id, title)]
+            }
+        });
+    };
+
+    render() {
+
+        return (
+            <div className="container">
+                <Header />
+                <Filter />
+                <div className="row marginTopBottom">
+                    <List todoList={this.state.todoData}
+                        deleteItem={this.onDeleteItem}
+                        onImportant={this.onImportant}
+                        onlabelClick={this.onlabelClick} />
+                </div>
+                <AddItem onAddItem={this.onAddItem} />
+            </div>
+        );
+    };
 }
-
-const App = () =>{
-    return (
-        <div className = "container">
-        <h1>My ToDoList</h1>
-        <Filter />
-        <div className = "row marginTopBottom">
-            <List todoData = {data}/>
-        </div>
-        <AddItem addFunc = {addNewItem}/>
-    </div>
-    );
-};
-
-export default App;
