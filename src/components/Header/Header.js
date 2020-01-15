@@ -2,12 +2,12 @@ import React from 'react';
 
 import './Header.css';
 
-const Header = () => {
+const Header = ({ doneCount, notDoneCount }) => {
   return (
     <>
       <h1>Todo List</h1>
       <div className="stats">
-        1 more todo, 3 done
+        { notDoneCount } more todo, { doneCount } done
       </div>
     </>
   );

@@ -1,4 +1,7 @@
-.list_container
-{
-    margin-top: 50px;
+.todo-list .list-group-item {
+  padding: .25rem .75rem;
+}
+
+.list-group-item:hover {
+  background: rgb(243, 243, 243);
 }

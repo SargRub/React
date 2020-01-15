@@ -1,113 +1,143 @@
 import React, { Component } from 'react';
-import Filter from '../Filter';
+
 import Header from '../Header';
-import List from '../List'
-import AddItem from '../AddItem'
+import Filter from '../Filter';
+import List from '../List';
+import AddItem from '../AddItem';
 
-export default class App extends Component {
+import './App.css';
 
-    state = {
-        todoData:
-            [
-                this.createNewItem(1, "Learn Numpy"),
-                this.createNewItem(2, "Learn React"),
-                this.createNewItem(3, "Learn Scipy"),
-                this.createNewItem(4, "Learn Android")
-            ]
+class App extends Component {
+
+  maxId = 1;
+
+  state = {
+    todoData: [
+      this.createNewItem('Սովորել React'),
+      this.createNewItem('Կոֆե խմել'),
+      this.createNewItem('Սովորել Node.js'),
+      this.createNewItem('Հաց ուտել'),
+    ],
+    searchText: '',
+    filter: 'all' // active, done or all
+  }
+
+  createNewItem(title) {
+    return {
+      id: this.maxId++,
+      title,
+      important: false,
+      isDone: false
     }
+  }
 
-    createNewItem(id, title) {
+  getIndex(id) {
+    const { todoData } = this.state;
+    return todoData.findIndex((el) => el.id === id);
+  }
 
-        return {
-            id,
-            title,
-            important: false,
-            isDone: false
-        }
+  toggleProperty(arr, id, propName) {
+    const idx = this.getIndex(id);
+
+    const obj = {
+      ...arr[idx],
+      [propName]: !arr[idx][propName]
+    };
+
+    const before = arr.slice(0, idx);
+    const after = arr.slice(idx + 1);
+
+    return [...before, obj, ...after];
+  }
+
+  deleteListItem = (id) => {
+    const idx = this.getIndex(id);
+
+    this.setState(({ todoData }) => {
+      const before = todoData.slice(0, idx);
+      const after = todoData.slice(idx + 1);
+
+      return {
+        todoData: [...before, ...after]
+      }
+    });
+  };
+
+  addNewItem = (text) => {
+    this.setState(({ todoData }) => {
+      return {
+        todoData: [...todoData, this.createNewItem(text)]
+      }
+    });
+  };
+
+  onImportant = (id) => {
+    this.setState(({ todoData }) => {
+      return {
+        todoData: this.toggleProperty(todoData, id, 'important')
+      }
+    });
+  };
+
+  onDone = (id) => {
+    this.setState(({ todoData }) => {
+      return {
+        todoData: this.toggleProperty(todoData, id, 'isDone')
+      }
+    });
+  };
+
+  filter = (items, filter) => {
+    switch(filter) {
+      case 'active': return items.filter((item) => !item.isDone);
+      case 'done': return items.filter((item) => item.isDone);
+      default: return items;
     }
-    onlabelClick = (id) => {
-        this.setState(({ todoData }) => {
-            const idx = todoData.findIndex((obj) => obj.id === id);
+  };
 
-            const obj = {
-                ...todoData[idx],
-                isDone: !todoData[idx].isDone
-            };
+  onFilterChange = (filter) => {
+    this.setState({ filter });
+  }
 
-            return {
-                todoData: [
-                    ...todoData.slice(0, idx),
-                    obj,
-                    ...todoData.slice(idx + 1)
-                ]
-            }
-        });
-    };
+  onSearchChange = (text) => {
+    this.setState({ searchText: text });
+  }
 
-    onImportant = (id) => {
-        this.setState(({ todoData }) => {
-            const idx = todoData.findIndex((obj) => obj.id === id);
+  search = (todoData, searchText) => {
+    if(!searchText.length) return todoData;
 
-            const obj = {
-                ...todoData[idx],
-                important: !todoData[idx].important
-            };
+    return todoData.filter((item) => {
+      return item.title.toLowerCase().indexOf(searchText.toLowerCase()) > -1;
+    });
+  };
 
-            return {
-                todoData: [
-                    ...todoData.slice(0, idx),
-                    obj,
-                    ...todoData.slice(idx + 1)
-                ]
-            }
-        });
-    };
+  render() {
+    const { todoData, searchText, filter } = this.state;
+    const visibilItems = this.filter(
+      this.search(todoData, searchText), filter
+    );
 
-    onDeleteItem = (id) => {
-        this.setState(({ todoData }) => {
-            const idx = todoData.findIndex((obj) => obj.id === id);
+    const doneCount = visibilItems.filter((el) => el.isDone).length;
+    const notDoneCount = visibilItems.length - doneCount;
 
-            return {
-                todoData: [
-                    ...todoData.slice(0, idx),
-                    ...todoData.slice(idx + 1)
-                ]
-            }
-        });
-    }
-    onAddItem = (text) => {
-        const title = text.trim();
-        if (!title) {
-            return;
-        }
-
-        this.setState(({ todoData }) => {
-            let id = 1;
-
-            if (todoData[todoData.length - 1]) {
-                id = todoData[todoData.length - 1].id + 1;
-            }
-
-            return {
-                todoData: [...todoData, this.createNewItem(id, title)]
-            }
-        });
-    };
-
-    render() {
-
-        return (
-            <div className="container">
-                <Header />
-                <Filter />
-                <div className="row marginTopBottom">
-                    <List todoList={this.state.todoData}
-                        deleteItem={this.onDeleteItem}
-                        onImportant={this.onImportant}
-                        onlabelClick={this.onlabelClick} />
-                </div>
-                <AddItem onAddItem={this.onAddItem} />
-            </div>
-        );
-    };
+    return (
+      <div className="container">
+        <Header doneCount={ doneCount } notDoneCount={ notDoneCount } />
+        <Filter
+          onSearchChange={ this.onSearchChange }
+          onFilterChange={ this.onFilterChange }
+          filter={ this.state.filter }
+        />
+        <List
+          todoList={visibilItems}
+          onDeleted={this.deleteListItem}
+          onImportant={this.onImportant}
+          onDone={this.onDone}
+        />
+        <AddItem onAddItem={this.addNewItem} />
+      </div>
+    );
+  }
 }
+
+export default App;
